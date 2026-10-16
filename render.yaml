@@ -16,7 +16,7 @@ services:
     runtime: native
     plan: free
     region: singapore
-    buildCommand: cd backend && ./mvnw -B -DskipTests package
+    buildCommand: cd backend && bash ./mvnw -B -DskipTests package
     # The free tier has 512 MB, so cap the heap and leave room for Metaspace and
     # direct byte buffers. UseSerialGC keeps pause times short on a 0.1 CPU share.
     startCommand: >-
