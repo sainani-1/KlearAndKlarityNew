@@ -1,5 +1,9 @@
 # Deploy: backend on Render + frontend on Cloudflare Pages
 
+> **Already have a deployment and just need to update it?** Jump to
+> [Part 0](#part-0--updating-an-existing-deployment) first, then come back for
+> the connect/verify steps.
+
 You are deploying from the GitHub repo
 `https://github.com/sainani-1/klearandklarity` (branch `master`).
 
@@ -21,6 +25,56 @@ The two connect through two settings:
 
 > Do the parts in order. Part 3 gives you the Pages URL that Part 2 needs, so if
 > you set the backend up first, come back and add the CORS value afterwards.
+
+---
+
+## Part 0 — Updating an existing deployment
+
+Use this if you **already have** Render + Cloudflare Pages running (old code)
+and just want to ship this updated repo. The DB still lives in TiDB; you do
+**not** need to recreate it — its credentials are stored in your Render service
+env vars.
+
+### 0.1 Grab your existing values from Render
+1. Render → service `klear-and-klarity-api` → **Environment** tab.
+2. Copy `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`,
+   `CORS_ALLOWED_ORIGINS`, `MAIL_BASE_URL` into a notepad.
+
+### 0.2 Point the backend at the new repo and redeploy
+1. Render → service → **Settings** → **Build & Deploy** → **Connected Repo**.
+2. Change repo to `sainani-1/klearandklarity`, branch `master`.
+3. **Manual Deploy** → **Clear build cache and deploy** → wait for green.
+   (Hibernate updates the schema automatically; your data is kept.)
+
+### 0.3 Point Cloudflare Pages at the new repo + set the API URL
+1. Cloudflare → Pages project → **Settings** → **Build & deployments**.
+2. Switch the connected repo to `sainani-1/klearandklarity`, branch `master`.
+   (If it can't be switched, disconnect Git and reconnect to the new repo.)
+3. **Environment variables (Production):**
+   - `VITE_API_URL` = `https://klear-and-klarity-api.onrender.com/api`
+   - `NODE_VERSION` = `22.12.0`
+4. **Build settings:** root `frontend`, cmd `npm run build`, output `dist`.
+5. **Deployments** → **Clear cache and deploy**.
+
+### 0.4 Confirm the connect (CORS + mail base)
+1. Render **Environment** → `CORS_ALLOWED_ORIGINS` must include your Pages URL
+   `https://<project>.pages.dev` (exact match).
+2. `MAIL_BASE_URL` = the same Pages URL. Save (auto-redeploys).
+
+### 0.5 Turn on email (if it wasn't already)
+1. Google account → enable **2-Step Verification**.
+2. https://myaccount.google.com/apppasswords → create one, copy the 16-char value.
+3. Render env: `MAIL_USERNAME` (Gmail), `MAIL_PASSWORD` (app password),
+   `MAIL_FROM_ADDRESS` (Gmail), `MAIL_FROM_NAME` = `Klear And Klarity`,
+   `MAIL_VERIFICATION_REQUIRED` = blank. Save.
+
+### 0.6 Verify + update apps
+- Wake the API: open `/api/public/settings`, then open the Pages URL and register
+  a test account (you should get a verification email).
+- Repoint the native/desktop apps: set `frontend/.env.production` to the Render
+  URL and rebuild (`REBUILD.md`).
+
+Then continue with Parts 5 and 6 below for detail.
 
 ---
 
