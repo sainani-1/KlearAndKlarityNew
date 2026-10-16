@@ -4,6 +4,8 @@ import { useAuth } from '../../lib/auth'
 const LINKS = [
   { to: '/admin', end: true, label: 'Overview', icon: '📊' },
   { to: '/admin/registrations', label: 'Registrations', icon: '👥' },
+  { to: '/admin/badges', label: 'Badges', icon: '🏅' },
+  { to: '/admin/followers', label: 'Followers', icon: '⭐' },
   { to: '/admin/onboarding', label: 'Onboarding', icon: '📝' },
   { to: '/admin/careers', label: 'Careers', icon: '🌱' },
   { to: '/admin/discussion', label: 'Discussion', icon: '💬' },

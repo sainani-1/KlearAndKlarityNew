@@ -53,63 +53,71 @@ export default function Home() {
   return (
     <>
       {/* hero */}
-      <section className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-brand-50 via-white to-slate-50">
+      <section className="hero-stage relative overflow-hidden border-b border-brand-950">
         <div
-          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl"
+          className="hero-blob pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl"
           aria-hidden="true"
         />
         <div
-          className="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-indigo-200/30 blur-3xl"
+          className="hero-blob pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-indigo-200/30 blur-3xl"
           aria-hidden="true"
         />
 
-        <div className="container-page relative py-20 sm:py-24">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="container-page relative z-10 py-24 sm:py-32 lg:py-36">
+          <div className="grid items-end gap-14 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
-              <span className="badge bg-white text-brand-700 ring-1 ring-brand-200">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Free for every student
+              <span className="badge bg-white/10 text-brand-100 ring-1 ring-white/20 backdrop-blur-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#ff9b71] shadow-[0_0_12px_#ff9b71]" />
+                A clearer next chapter
               </span>
 
-              <h1 className="mt-5 text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl">
+              <p className="mt-10 text-xs font-bold uppercase tracking-[0.24em] text-brand-200">Klear And Klarity / 01</p>
+              <h1 className="hero-title mt-5 max-w-3xl font-extrabold text-white">
                 {tagline || 'Career clarity for every student.'}
               </h1>
 
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              <p className="hero-copy mt-7 max-w-xl text-base leading-relaxed sm:text-lg">
                 {companyName} turns a huge career dataset into three simple tools. Filter 160+ pathways by
                 the class you are actually in, read exactly what each one involves, and ask questions of
                 other students without anyone finding out who you are.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link to={primaryCta.to} className="btn-primary px-6 py-3 text-base">
+                <Link to={primaryCta.to} className="btn hero-primary px-6 py-3 text-base">
                   {primaryCta.label}
                 </Link>
-                <Link to="/career-tree" className="btn-secondary px-6 py-3 text-base">
+                <Link to="/career-tree" className="btn border-white/25 bg-white/10 px-6 py-3 text-base text-white hover:bg-white/20">
                   Browse the Career Tree
                 </Link>
               </div>
 
-              <dl className="mt-10 grid max-w-md grid-cols-3 gap-6 border-t border-slate-200 pt-6">
+              <dl className="mt-12 grid max-w-md grid-cols-3 gap-6 border-t border-white/15 pt-6">
                 {[
                   { value: '160+', label: 'Career pathways' },
                   { value: '6', label: 'Categories' },
                   { value: '0', label: 'Profile leaks' },
                 ].map((stat) => (
                   <div key={stat.label}>
-                    <dt className="text-2xl font-bold text-brand-700">{stat.value}</dt>
-                    <dd className="mt-0.5 text-xs text-slate-500">{stat.label}</dd>
+                    <dt className="text-2xl font-bold text-[#ffb18f]">{stat.value}</dt>
+                    <dd className="mt-0.5 text-xs text-brand-100/70">{stat.label}</dd>
                   </div>
                 ))}
               </dl>
             </div>
 
             {/* preview card */}
-            <div className="relative">
-              <div className="card p-6 shadow-xl shadow-brand-900/5">
+            <div className="preview-shell relative mx-auto w-full max-w-xl lg:translate-y-8">
+              <div className="hero-float hero-float-top">
+                <span className="hero-float-mark">✦</span>
+                <span>
+                  <span className="hero-float-label">Your map is ready</span>
+                  <span className="hero-float-value">6 directions to explore</span>
+                </span>
+              </div>
+              <div className="preview-panel rounded-[2rem] p-6 sm:p-8">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-slate-900">Filter by class</p>
-                  <span className="badge bg-brand-50 text-brand-700 ring-1 ring-brand-200">Career Tree</span>
+                    <span className="badge bg-brand-100 text-brand-800 ring-1 ring-brand-200">Career Tree</span>
                 </div>
 
                 <ul className="mt-4 space-y-2">
@@ -144,10 +152,19 @@ export default function Home() {
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-300 text-[10px] font-bold text-slate-600">
                       A
                     </span>
-                    <span className="text-xs text-slate-500">Aarav · 12 min ago</span>
+                    <span className="text-xs text-slate-500">Anonymous student · 12 min ago</span>
                     <span className="badge bg-slate-200 text-slate-600">Stream Selection</span>
                   </div>
                 </div>
+              </div>
+              <div className="hero-float hero-float-bottom">
+                <span>
+                  <span className="hero-float-label">Pathways explored</span>
+                  <span className="hero-float-value">160+ and growing</span>
+                </span>
+                <span className="hero-sparkline" aria-hidden="true">
+                  <i /><i /><i /><i /><i /><i />
+                </span>
               </div>
             </div>
           </div>
@@ -155,9 +172,10 @@ export default function Home() {
       </section>
 
       {/* features */}
-      <section className="container-page py-20">
+      <section className="container-page py-24 sm:py-32">
         <div className="max-w-2xl">
-          <h2 className="section-title">Everything built around one question</h2>
+          <p className="section-kicker">The starting point</p>
+          <h2 className="section-title mt-4 text-4xl sm:text-5xl">Everything built around one question</h2>
           <p className="mt-3 text-slate-600">
             "What should I do after Class 10?" Everything here exists to make that question easier to answer.
           </p>
@@ -165,11 +183,14 @@ export default function Home() {
 
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
           {FEATURES.map((feature) => (
-            <div key={feature.title} className="card-hover p-6">
+            <div key={feature.title} className="card-hover group p-7">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-xl" aria-hidden="true">
                 {feature.icon}
               </span>
-              <h3 className="mt-4 text-base font-bold text-slate-900">{feature.title}</h3>
+              <div className="mt-6 flex items-center justify-between gap-3">
+                <h3 className="text-base font-bold text-slate-900">{feature.title}</h3>
+                <span className="text-lg text-brand-300 transition group-hover:translate-x-1 group-hover:text-brand-600" aria-hidden="true">↗</span>
+              </div>
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{feature.body}</p>
             </div>
           ))}
@@ -186,7 +207,7 @@ export default function Home() {
 
           <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step) => (
-              <li key={step.n} className="relative rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <li key={step.n} className="step-card relative rounded-3xl border border-slate-200 bg-slate-50 p-6">
                 <span className="text-sm font-bold text-brand-600">{step.n}</span>
                 <h3 className="mt-2 text-base font-bold text-slate-900">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.body}</p>

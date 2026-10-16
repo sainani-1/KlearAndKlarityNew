@@ -27,6 +27,7 @@ export default function Navbar() {
     ? [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/career-tree', label: 'Career Tree' },
+        { to: '/compare', label: 'Compare' },
         { to: '/discussion', label: 'Discussion' },
         { to: '/profile', label: 'My Profile' },
         ...(isAdmin ? [{ to: '/admin', label: 'Admin Panel', accent: true }] : []),
@@ -46,15 +47,15 @@ export default function Navbar() {
     }`
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
       <div className="container-page">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-[4.5rem] items-center justify-between gap-4">
           <Link to="/" className="shrink-0" aria-label={`${companyName} home`}>
             <Logo size="sm" />
           </Link>
 
           {/* desktop nav */}
-          <nav className="hidden items-center gap-1 lg:flex">
+          <nav className="hidden items-center gap-1 rounded-2xl border border-slate-200/70 bg-slate-50/70 p-1 lg:flex">
             {links.map((link) => (
               <NavLink
                 key={link.to}

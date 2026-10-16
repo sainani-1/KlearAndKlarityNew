@@ -26,7 +26,7 @@ export default function AdminSettings() {
   useEffect(() => {
     let cancelled = false
     api
-      .get('/public/settings')
+      .get('/public/settings', { params: { _ts: Date.now() } })
       .then(({ data }) => {
         if (!cancelled) setForm({ ...FALLBACK, ...data })
       })
@@ -40,7 +40,7 @@ export default function AdminSettings() {
     e.preventDefault()
     const result = await run(() => api.put('/admin/settings', form))
     if (result) {
-      await refresh()
+      await refresh(result.data)
       setToast('Settings saved. They appear immediately across the site.')
       setTimeout(() => setToast(''), 3500)
     }

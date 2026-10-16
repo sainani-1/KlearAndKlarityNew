@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Klear And Klarity</string>
+    <string name="title_activity_main">Klear And Klarity</string>
+    <string name="package_name">com.klearandklarity.app</string>
+    <string name="custom_url_scheme">com.klearandklarity.app</string>
+</resources>

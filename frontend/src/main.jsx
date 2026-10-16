@@ -17,3 +17,15 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Register the service worker for installable PWA / offline shell.
+// Skipped inside the native (Capacitor) and desktop (Electron) builds.
+const isNativeShell =
+  typeof window !== 'undefined' &&
+  (window.Capacitor?.isNativePlatform?.() || window.klearityDesktop?.isDesktop === true)
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator && !isNativeShell) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}

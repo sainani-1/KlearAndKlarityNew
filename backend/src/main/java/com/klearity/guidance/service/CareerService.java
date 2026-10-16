@@ -322,7 +322,7 @@ public class CareerService {
         return new CareerDtos.ItemSummary(
                 item.getId(), item.getTitle(), item.getSlug(),
                 cc.getId(), cc.getName(), item.getCategory(), item.getDescription(),
-                item.getDuration(), item.getStream(), item.getSortOrder());
+                item.getDuration(), item.getStream(), splitTags(item.getInterestTags()), item.getSortOrder());
     }
 
     public static CareerDtos.ClassResponse toClassResponse(CareerClass cc, long count) {

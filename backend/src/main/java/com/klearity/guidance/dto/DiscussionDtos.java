@@ -9,6 +9,8 @@ import java.util.List;
 
 public record DiscussionDtos() {
 
+    public record LinkRequest(@NotBlank @Size(max = 120) String title, @NotBlank @Size(max = 1000) String url) {}
+
     public record CategoryRequest(
             @NotBlank(message = "Category name is required") @Size(max = 100) String name,
             @Size(max = 400) String description,
@@ -27,13 +29,14 @@ public record DiscussionDtos() {
             @NotNull(message = "Please choose a category") Long categoryId,
             @NotBlank(message = "Title is required") @Size(min = 3, max = 250) String title,
             @NotBlank(message = "Please write your opinion") @Size(min = 10, max = 8000) String body,
-            boolean anonymous
+            boolean anonymous, @Size(max = 10, message = "You can add up to 10 links") List<LinkRequest> links
     ) {
     }
 
     public record PostUpdateRequest(
             @NotBlank @Size(min = 3, max = 250) String title,
             @NotBlank @Size(min = 10, max = 8000) String body
+            , @Size(max = 10, message = "You can add up to 10 links") List<LinkRequest> links
     ) {
     }
 
@@ -53,14 +56,21 @@ public record DiscussionDtos() {
             String categoryName,
             String categoryColor,
             String displayName,
+            Long authorId,
+            boolean adminAuthor,
             boolean anonymous,
             String title,
             String body,
+            List<LinkRequest> links,
             boolean pinned,
             boolean mine,
             long replyCount,
+            long likeCount,
+            boolean liked,
             Instant createdAt,
-            Instant updatedAt
+            Instant updatedAt,
+            String authorName,
+            String badgeKey
     ) {
     }
 
@@ -70,7 +80,10 @@ public record DiscussionDtos() {
             boolean anonymous,
             String body,
             boolean mine,
-            Instant createdAt
+            Instant createdAt,
+            String authorName,
+            boolean adminAuthor,
+            String badgeKey
     ) {
     }
 

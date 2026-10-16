@@ -1,0 +1,62 @@
+{
+  "name": "klear-and-klarity-desktop",
+  "version": "1.0.0",
+  "description": "Klear And Klarity desktop app",
+  "main": "main.js",
+  "author": "Klear And Klarity",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "prebuild:web": "npm --prefix ../frontend run build",
+    "dist": "npm run prebuild:web && electron-builder",
+    "dist:win": "npm run prebuild:web && electron-builder --win",
+    "dist:mac": "npm run prebuild:web && electron-builder --mac",
+    "dist:linux": "npm run prebuild:web && electron-builder --linux"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.klearandklarity.app",
+    "productName": "Klear And Klarity",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/dist",
+        "to": "web"
+      }
+    ],
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Klear And Klarity"
+    },
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.education",
+      "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Education",
+      "icon": "build/icon.png",
+      "maintainer": "Klear And Klarity"
+    }
+  }
+}

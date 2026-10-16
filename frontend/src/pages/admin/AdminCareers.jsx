@@ -63,6 +63,18 @@ function ItemForm({ initial, classes, onCancel, onSave, busy, error }) {
     })
   }
 
+  const officialLinksText = Array.isArray(item.detail?.official_links)
+    ? item.detail.official_links.map((link) => `${link.label} | ${link.url}`).join('\n')
+    : ''
+
+  const setOfficialLinks = (value) => {
+    const links = value.split('\n').map((line) => {
+      const [label, ...urlParts] = line.split('|')
+      return { label: label?.trim(), url: urlParts.join('|').trim() }
+    }).filter((link) => link.label && /^https?:\/\//i.test(link.url))
+    setItem((prev) => ({ ...prev, detail: { ...(prev.detail ?? {}), official_links: links } }))
+  }
+
   const submit = (e) => {
     e.preventDefault()
     setLocalError('')
@@ -203,6 +215,14 @@ function ItemForm({ initial, classes, onCancel, onSave, busy, error }) {
               onChange={(e) => setDetail(field.key, e.target.value)}
             />
           ))}
+          <TextField
+            as="textarea"
+            textareaRows={4}
+            label="Official verification links"
+            value={officialLinksText}
+            onChange={(e) => setOfficialLinks(e.target.value)}
+            hint="One per line in this format: National Scholarship Portal | https://scholarships.gov.in/"
+          />
         </div>
       </div>
 

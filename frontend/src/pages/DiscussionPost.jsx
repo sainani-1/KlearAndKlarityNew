@@ -7,6 +7,8 @@ import { Alert } from '../components/Feedback'
 import { TextField, Checkbox } from '../components/Form'
 import Modal from '../components/Modal'
 import { ButtonSpinner } from '../components/Spinner'
+import AdminBadge from '../components/AdminBadge'
+import StudentBadge from '../components/StudentBadge'
 import { categoryColorClass, formatDateTime, timeAgo } from '../lib/utils'
 
 export default function DiscussionPost() {
@@ -81,6 +83,11 @@ export default function DiscussionPost() {
     }
   }
 
+  const toggleLike = async () => {
+    const { data: updated } = await api.post(`/discussions/posts/${id}/like`)
+    setData((prev) => ({ ...prev, post: updated }))
+  }
+
   const deleteReply = async (replyId) => {
     if (!window.confirm('Delete this reply?')) return
     const result = await run(() => api.delete(`/discussions/replies/${replyId}`))
@@ -144,9 +151,9 @@ export default function DiscussionPost() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-slate-900">
-                  {post.displayName}
+                  {post.adminAuthor ? <AdminBadge /> : isAdmin && post.authorName ? post.authorName : post.displayName} {!post.anonymous && <StudentBadge badgeKey={post.badgeKey} compact />}
                   {post.anonymous && (
-                    <span className="ml-1.5 text-xs font-normal text-slate-500">(anonymous)</span>
+                    <span className="ml-1.5 text-xs font-normal text-slate-500">(shared as anonymous)</span>
                   )}
                 </p>
                 <p className="text-xs text-slate-500" title={formatDateTime(post.createdAt)}>
@@ -156,6 +163,16 @@ export default function DiscussionPost() {
             </div>
 
             <p className="mt-5 whitespace-pre-wrap text-base leading-relaxed text-slate-700">{post.body}</p>
+
+            {post.links?.length > 0 && (
+              <div className="mt-5 rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Useful links</p>
+                <ul className="mt-2 space-y-1.5">{post.links.map((link) => <li key={link.url}><a href={link.url} target="_blank" rel="noreferrer" className="link">{link.title}</a></li>)}</ul>
+              </div>
+            )}
+            <button type="button" onClick={toggleLike} className={`mt-5 rounded-xl px-4 py-2 text-sm ring-1 ${post.liked ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-white text-slate-600 ring-slate-200'}`}>
+              {post.liked ? '♥ Liked' : '♡ Like'} · {post.likeCount ?? 0}
+            </button>
 
             {canModerate && (
               <div className="mt-6 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
@@ -201,9 +218,9 @@ export default function DiscussionPost() {
                         </span>
                         <div>
                           <p className="text-sm font-semibold text-slate-900">
-                            {item.displayName}
+                            {item.adminAuthor ? <AdminBadge /> : isAdmin && item.authorName ? item.authorName : item.displayName} {!item.anonymous && <StudentBadge badgeKey={item.badgeKey} compact />}
                             {item.anonymous && (
-                              <span className="ml-1.5 text-xs font-normal text-slate-500">(anonymous)</span>
+                              <span className="ml-1.5 text-xs font-normal text-slate-500">(shared as anonymous)</span>
                             )}
                           </p>
                           <p className="text-xs text-slate-500" title={formatDateTime(item.createdAt)}>
@@ -273,7 +290,10 @@ export default function DiscussionPost() {
         <aside className="space-y-4">
           <div className="card p-5">
             <h2 className="text-xs font-bold uppercase tracking-wide text-slate-500">Posted by</h2>
-            <p className="mt-2 text-sm font-semibold text-slate-900">{post.displayName}</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">
+              {post.adminAuthor ? <AdminBadge /> : isAdmin && post.authorName ? post.authorName : post.displayName} {!post.anonymous && <StudentBadge badgeKey={post.badgeKey} compact />}
+              {post.anonymous && <span className="ml-1.5 text-xs font-normal text-slate-500">(shared as anonymous)</span>}
+            </p>
             <p className="mt-2 text-xs leading-relaxed text-slate-500">
               Only a first name is ever shown. Email, contact number and profile stay private.
             </p>

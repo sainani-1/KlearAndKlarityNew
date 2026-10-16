@@ -27,6 +27,15 @@ public interface DiscussionPostRepository extends JpaRepository<DiscussionPost, 
                                 @Param("search") String search,
                                 Pageable pageable);
 
+    @Query("""
+            select p from DiscussionPost p left join DiscussionLike l on l.post = p
+            where p.deleted = false and (:categoryId is null or p.category.id = :categoryId)
+              and (:search is null or lower(p.title) like :search or lower(p.body) like :search)
+            group by p order by p.pinned desc, count(l) desc, p.createdAt desc
+            """)
+    Page<DiscussionPost> searchByLikes(@Param("categoryId") Long categoryId,
+                                       @Param("search") String search, Pageable pageable);
+
     @Query("select p from DiscussionPost p where p.author.id = :userId and p.deleted = false order by p.createdAt desc")
     List<DiscussionPost> findByAuthor(@Param("userId") Long userId);
 

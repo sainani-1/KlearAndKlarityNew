@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import { useSettings } from '../lib/settings'
-import Logo from '../components/Logo'
 
 const STATS = [
   { value: '163', label: 'career pathways' },
@@ -76,6 +75,7 @@ const PRIVACY = [
   'Discussion posts show your first name only, or "Anonymous" if you tick the box.',
   'We never sell or share student data, and we do not run ads.',
   'You can edit your profile or ask us to delete your account at any time.',
+  
 ]
 
 function Icon({ children, className = 'h-6 w-6' }) {
@@ -109,9 +109,9 @@ export default function About() {
     .filter(Boolean)
 
   return (
-    <>
+    <div className="about-page">
       {/* ---------------------------------------------------------------- hero */}
-      <section className="relative overflow-hidden bg-brand-950">
+      <section className="hero-stage relative overflow-hidden border-b border-brand-950 py-20 sm:py-28">
         <div
           className="absolute -top-32 -right-24 h-96 w-96 rounded-full bg-brand-600/30 blur-3xl"
           aria-hidden="true"
@@ -123,10 +123,8 @@ export default function About() {
 
         <div className="container-page relative py-20 sm:py-24">
           <div className="max-w-3xl">
-            <Logo size="lg" showText={false} className="rounded-2xl bg-white/95 p-2 shadow-lg ring-1 ring-white/20" />
-
-            <p className="mt-8 text-sm font-bold uppercase tracking-widest text-brand-300">About us</p>
-            <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+            <p className="section-kicker mt-8 text-brand-200">About us</p>
+            <h1 className="display-title mt-5 max-w-3xl font-extrabold text-white">
               {companyName}
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-brand-100">
@@ -135,7 +133,7 @@ export default function About() {
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/careers" className="btn-primary">
+              <Link to="/career-tree" className="btn-primary">
                 Explore the Career Tree
               </Link>
               <Link
@@ -309,14 +307,14 @@ export default function About() {
               Get started
             </Link>
             <Link
-              to="/careers"
+              to="/career-tree"
               className="btn-secondary border-white/25 bg-white/10 text-white hover:bg-white/20"
             >
-              Browse without an account
+              Go To Login
             </Link>
           </div>
         </div>
       </section>
-    </>
+    </div>
   )
 }

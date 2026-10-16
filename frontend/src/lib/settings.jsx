@@ -16,10 +16,15 @@ const SettingsContext = createContext(null)
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(DEFAULTS)
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (nextSettings = null) => {
+    if (nextSettings) {
+      setSettings({ ...DEFAULTS, ...nextSettings })
+      return nextSettings
+    }
     try {
-      const { data } = await api.get('/public/settings')
+      const { data } = await api.get('/public/settings', { params: { _ts: Date.now() } })
       setSettings({ ...DEFAULTS, ...data })
+      return data
     } catch {
       /* keep the current values, the site must still render if the API is down */
     }

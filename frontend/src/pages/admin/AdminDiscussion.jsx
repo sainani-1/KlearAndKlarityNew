@@ -302,7 +302,8 @@ export default function AdminDiscussion() {
                           {post.categoryName}
                         </span>
                         <span className="text-xs text-slate-500">
-                          {post.displayName} &middot; {formatDateTime(post.createdAt)}
+                          {post.authorName || post.displayName} {post.anonymous && <em>(shared as anonymous)</em>}
+                          {' · '}{formatDateTime(post.createdAt)}
                         </span>
                       </div>
 

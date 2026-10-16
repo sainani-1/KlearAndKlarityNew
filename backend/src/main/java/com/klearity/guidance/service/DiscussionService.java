@@ -1,6 +1,7 @@
 package com.klearity.guidance.service;
 
 import com.klearity.guidance.domain.DiscussionCategory;
+import com.klearity.guidance.domain.DiscussionLike;
 import com.klearity.guidance.domain.DiscussionPost;
 import com.klearity.guidance.domain.DiscussionReply;
 import com.klearity.guidance.domain.Role;
@@ -12,6 +13,7 @@ import com.klearity.guidance.exception.NotFoundException;
 import com.klearity.guidance.repository.DiscussionCategoryRepository;
 import com.klearity.guidance.repository.DiscussionPostRepository;
 import com.klearity.guidance.repository.DiscussionReplyRepository;
+import com.klearity.guidance.repository.DiscussionLikeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +36,8 @@ public class DiscussionService {
     private final DiscussionReplyRepository replyRepository;
     private final DiscussionCategoryRepository categoryRepository;
     private final CurrentUser currentUser;
+    private final DiscussionLikeRepository likeRepository;
+    private final ObjectMapper objectMapper;
 
     // ------------------------------------------------------------------ categories
 
@@ -102,7 +109,7 @@ public class DiscussionService {
 
     @Transactional(readOnly = true)
     public DiscussionDtos.PageResponse<DiscussionDtos.PostResponse> listPosts(
-            Long categoryId, String search, int page, int size) {
+            Long categoryId, String search, int page, int size, String sort) {
 
         if (categoryId != null) {
             categoryRepository.findById(categoryId)
@@ -112,13 +119,16 @@ public class DiscussionService {
         String term = (search == null || search.isBlank()) ? null
                 : "%" + search.trim().toLowerCase(Locale.ROOT) + "%";
 
-        Pageable pageable = PageRequest.of(
-                Math.max(page, 0), Math.min(Math.max(size, 1), 100),
-                Sort.by(Sort.Order.desc("pinned"), Sort.Order.desc("createdAt")));
+        Sort ordering = "likes".equalsIgnoreCase(sort)
+                ? Sort.by(Sort.Order.desc("pinned"), Sort.Order.desc("createdAt"))
+                : Sort.by(Sort.Order.desc("pinned"), Sort.Order.desc("createdAt"));
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100), ordering);
 
         Long currentUserId = currentUserOptionalId();
 
-        Page<DiscussionPost> result = postRepository.search(categoryId, term, pageable);
+        Page<DiscussionPost> result = "likes".equalsIgnoreCase(sort)
+                ? postRepository.searchByLikes(categoryId, term, pageable)
+                : postRepository.search(categoryId, term, pageable);
 
         return new DiscussionDtos.PageResponse<>(
                 result.getContent().stream().map(p -> toPostResponse(p, currentUserId)).toList(),
@@ -137,7 +147,9 @@ public class DiscussionService {
                         r.getId(), r.getDisplayName(), r.isAnonymous(), r.getBody(),
                         currentUserId != null && r.getAuthor() != null
                                 && currentUserId.equals(r.getAuthor().getId()),
-                        r.getCreatedAt()))
+                        r.getCreatedAt(), adminAuthorName(r.getAuthor()),
+                        r.getAuthor() != null && r.getAuthor().getRole() == Role.ADMIN,
+                        r.getAuthor() == null ? null : r.getAuthor().getBadgeKey()))
                 .toList();
         return new DiscussionDtos.PostDetailResponse(toPostResponse(post, currentUserId), replies);
     }
@@ -154,6 +166,7 @@ public class DiscussionService {
                 .anonymous(request.anonymous())
                 .title(request.title().trim())
                 .body(request.body().trim())
+                .linksJson(writeLinks(request.links()))
                 .build();
 
         DiscussionPost saved = postRepository.save(post);
@@ -168,7 +181,17 @@ public class DiscussionService {
 
         post.setTitle(request.title().trim());
         post.setBody(request.body().trim());
+        post.setLinksJson(writeLinks(request.links()));
         return toPostResponse(postRepository.save(post), user.getId());
+    }
+
+    @Transactional
+    public DiscussionDtos.PostResponse toggleLike(Long id) {
+        User user = currentUser.fresh();
+        DiscussionPost post = requireVisiblePost(id);
+        likeRepository.findByPostIdAndUserId(id, user.getId()).ifPresentOrElse(likeRepository::delete,
+                () -> likeRepository.save(DiscussionLike.builder().post(post).user(user).build()));
+        return toPostResponse(post, user.getId());
     }
 
     @Transactional
@@ -196,6 +219,11 @@ public class DiscussionService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<DiscussionDtos.PostResponse> myPostsFor(Long userId) {
+        return postRepository.findByAuthor(userId).stream().map(p -> toPostResponse(p, currentUserOptionalId())).toList();
+    }
+
     // --------------------------------------------------------------------- replies
 
     @Transactional
@@ -213,7 +241,9 @@ public class DiscussionService {
 
         return new DiscussionDtos.ReplyResponse(
                 reply.getId(), reply.getDisplayName(), reply.isAnonymous(), reply.getBody(),
-                true, reply.getCreatedAt());
+                true, reply.getCreatedAt(), adminAuthorName(reply.getAuthor()),
+                reply.getAuthor() != null && reply.getAuthor().getRole() == Role.ADMIN,
+                reply.getAuthor() == null ? null : reply.getAuthor().getBadgeKey());
     }
 
     @Transactional
@@ -285,11 +315,38 @@ public class DiscussionService {
         return new DiscussionDtos.PostResponse(
                 post.getId(),
                 c.getId(), c.getName(), c.getColor(),
-                post.getDisplayName(), post.isAnonymous(),
-                post.getTitle(), post.getBody(), post.isPinned(),
+                post.getDisplayName(), post.isAnonymous() ? null : authorId,
+                post.getAuthor() != null && post.getAuthor().getRole() == Role.ADMIN,
+                post.isAnonymous(),
+                post.getTitle(), post.getBody(), readLinks(post.getLinksJson()), post.isPinned(),
                 currentUserId != null && currentUserId.equals(authorId),
                 replyRepository.countByPostIdAndDeletedFalse(post.getId()),
-                post.getCreatedAt(), post.getUpdatedAt());
+                likeRepository.countByPostId(post.getId()),
+                currentUserId != null && likeRepository.existsByPostIdAndUserId(post.getId(), currentUserId),
+                post.getCreatedAt(), post.getUpdatedAt(), adminAuthorName(post.getAuthor()),
+                post.getAuthor() == null ? null : post.getAuthor().getBadgeKey());
+    }
+
+    private String writeLinks(List<DiscussionDtos.LinkRequest> links) {
+        try { return objectMapper.writeValueAsString(links == null ? List.of() : links); }
+        catch (Exception e) { throw new BadRequestException("One or more links are invalid."); }
+    }
+    private List<DiscussionDtos.LinkRequest> readLinks(String value) {
+        if (value == null || value.isBlank()) return List.of();
+        try { return objectMapper.readValue(value, new TypeReference<List<DiscussionDtos.LinkRequest>>() {}); }
+        catch (Exception e) { return List.of(); }
+    }
+
+    /** Real author names are only included in responses while an admin is viewing moderation data. */
+    private String adminAuthorName(User author) {
+        try {
+            if (author != null && currentUser.require().getRole() == Role.ADMIN) {
+                return author.getFullName();
+            }
+        } catch (Exception ignored) {
+            // Anonymous/public requests never receive moderation identity data.
+        }
+        return null;
     }
 
     public static DiscussionDtos.CategoryResponse toCategoryResponse(DiscussionCategory c, long count) {

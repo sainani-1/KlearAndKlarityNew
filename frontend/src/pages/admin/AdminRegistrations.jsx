@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import { useAuth, useSubmit } from '../../lib/auth'
 import { PageLoader } from '../../components/Spinner'
@@ -216,6 +217,16 @@ export default function AdminRegistrations() {
     }
   }
 
+  const setPublicFor = async (row) => {
+    const result = await run(() => api.patch(`/admin/registrations/${row.id}/public-account`, null, {
+      params: { publicAccount: !row.publicAccount },
+    }))
+    if (result) {
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, ...result.data } : r)))
+      flash(result.data.publicAccount ? 'Account made public.' : 'Account made private.')
+    }
+  }
+
   const verifyEmail = async (row) => {
     const result = await run(() => api.patch(`/admin/registrations/${row.id}/verify-email`))
     if (result) {
@@ -335,6 +346,7 @@ export default function AdminRegistrations() {
                 <th className="px-4 py-3 font-semibold">Student</th>
                 <th className="px-4 py-3 font-semibold">Contact</th>
                 <th className="px-4 py-3 font-semibold">Role</th>
+                <th className="px-4 py-3 font-semibold">Followers</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
                 <th className="px-4 py-3 font-semibold">Joined</th>
                 <th className="px-4 py-3 font-semibold">Actions</th>
@@ -344,7 +356,9 @@ export default function AdminRegistrations() {
               {rows.map((row) => (
                 <tr key={row.id} className={row.enabled ? '' : 'bg-slate-50 text-slate-400'}>
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-slate-900">{row.fullName}</p>
+                    <Link to={`/users/${row.id}`} className="font-semibold text-brand-700 hover:underline">
+                      {row.fullName}
+                    </Link>
                     <p className="text-xs text-slate-500">
                       {row.email} &middot; {genderLabel(row.gender)}
                     </p>
@@ -365,6 +379,7 @@ export default function AdminRegistrations() {
                       ))}
                     </select>
                   </td>
+                  <td className="px-4 py-3 font-semibold text-slate-700">{row.followerCount ?? 0}</td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col items-start gap-1.5">
                       <StatusPill
@@ -381,6 +396,11 @@ export default function AdminRegistrations() {
                         on={row.onboardingCompleted}
                         onLabel="Onboarded"
                         offLabel="Onboarding pending"
+                      />
+                      <StatusPill
+                        on={row.publicAccount}
+                        onLabel="Public profile"
+                        offLabel="Private profile"
                       />
                       {resetUserIds.has(row.id) && (
                         <span className="badge bg-amber-50 text-amber-700 ring-1 ring-amber-200">
@@ -422,6 +442,9 @@ export default function AdminRegistrations() {
                         className="btn-ghost btn-sm"
                       >
                         {row.enabled ? 'Disable' : 'Enable'}
+                      </button>
+                      <button type="button" onClick={() => setPublicFor(row)} disabled={busy} className="btn-ghost btn-sm">
+                        {row.publicAccount ? 'Make private' : 'Make public'}
                       </button>
                       <button
                         type="button"

@@ -45,6 +45,13 @@ public class AdminController {
         return adminService.registrations(search, role);
     }
 
+    @GetMapping("/followers")
+    public List<UserDtos.AdminUserResponse> followers(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String role) {
+        return adminService.followers(search, role);
+    }
+
     @GetMapping("/registrations/{id}/answers")
     public Map<String, Object> registrationAnswers(@PathVariable Long id) {
         return adminService.userAnswers(id);
@@ -58,6 +65,18 @@ public class AdminController {
     @PatchMapping("/registrations/{id}/role")
     public UserDtos.AdminUserResponse setRole(@PathVariable Long id, @RequestParam Role role) {
         return adminService.setRole(id, role);
+    }
+
+    @PatchMapping("/registrations/{id}/public-account")
+    public UserDtos.AdminUserResponse setPublicAccount(@PathVariable Long id,
+                                                        @RequestParam boolean publicAccount) {
+        return adminService.setPublicAccount(id, publicAccount);
+    }
+
+    @PatchMapping("/registrations/{id}/badge")
+    public UserDtos.AdminUserResponse setBadge(@PathVariable Long id,
+                                                @RequestBody UserDtos.BadgeRequest request) {
+        return adminService.setBadge(id, request == null ? null : request.badgeKey());
     }
 
     @PatchMapping("/registrations/{id}/verify-email")

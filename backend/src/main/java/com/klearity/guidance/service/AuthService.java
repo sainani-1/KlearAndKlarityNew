@@ -269,6 +269,8 @@ private final Environment environment;
         if (request.gender() != null) {
             user.setGender(request.gender());
         }
+        // Account visibility is controlled by administrators.
+        user.setPublicAccount(true);
         userRepository.save(user);
         return toMe(user);
     }
@@ -332,6 +334,7 @@ private final Environment environment;
         return new UserDtos.MeResponse(
                 user.getId(), user.getFullName(), user.getFirstName(), user.getContactNumber(),
                 user.getEmail(), user.getGender(), user.getRole(), user.isEmailVerified(),
-                user.isOnboardingCompleted(), user.isMustChangePassword(), user.getCreatedAt());
+                user.isOnboardingCompleted(), user.isMustChangePassword(), user.isPublicAccount(), user.getCreatedAt(),
+                user.getBadgeKey());
     }
 }

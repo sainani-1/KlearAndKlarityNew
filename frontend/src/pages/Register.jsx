@@ -8,6 +8,7 @@ import { ButtonSpinner } from '../components/Spinner'
 import Modal from '../components/Modal'
 import Logo from '../components/Logo'
 import { GENDER_OPTIONS } from '../lib/utils'
+import AuthShowcase from '../components/AuthShowcase'
 
 const GENDERS = GENDER_OPTIONS.map((g) => ({ value: g.value, label: g.label }))
 
@@ -72,20 +73,36 @@ export default function Register() {
 
   return (
     <>
-      <section className="container-page py-14">
-        <div className="mx-auto max-w-2xl">
-          <div className="text-center">
+      <section className="auth-stage auth-page registration-page py-10 sm:py-16">
+        <div className="container-page mx-auto max-w-7xl">
+          <div className="registration-heading text-center">
             <Logo size="md" showText={false} className="justify-center" />
-            <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-900">Create your account</h1>
-            <p className="mt-2 text-slate-600">
+            <h1 className="display-title mt-5 font-extrabold text-slate-950">Create your account</h1>
+            <p className="mx-auto mt-3 max-w-xl text-slate-600">
               Free, and takes under a minute. You will log in manually after registering.
             </p>
           </div>
 
-          <div className="card mt-8 p-6 sm:p-8">
-            <form onSubmit={onSubmit} className="space-y-5" noValidate>
+          <div className="auth-layout registration-layout mt-12">
+          <AuthShowcase mode="register" />
+          <div className="registration-form mx-auto w-full max-w-3xl">
+          <div className="auth-panel mt-8 p-6 sm:p-12">
+            <div className="register-panel-head">
+              <div>
+                <p className="register-eyebrow">ACCOUNT SETUP</p>
+                <h2>Let’s get you oriented.</h2>
+              </div>
+              <span className="register-step-count">01 <i /> 03</span>
+            </div>
+            <div className="register-progress" aria-hidden="true"><span /></div>
+            <form onSubmit={onSubmit} className="space-y-7" noValidate>
               {error && <Alert tone="error">{error}</Alert>}
               {localError && <Alert tone="error">{localError}</Alert>}
+
+              <div className="register-section-label">
+                <span>01</span>
+                <div><strong>About you</strong><small>A few details to personalize your experience.</small></div>
+              </div>
 
               <TextField
                 label="Full name"
@@ -93,7 +110,7 @@ export default function Register() {
                 value={form.fullName}
                 onChange={update('fullName')}
                 error={fields.fullName}
-                placeholder="Aarav Sharma"
+                placeholder="Enter your full name"
                 autoComplete="name"
                 hint="Only your first name is ever shown on discussion posts."
               />
@@ -107,7 +124,7 @@ export default function Register() {
                   value={form.contactNumber}
                   onChange={update('contactNumber')}
                   error={fields.contactNumber}
-                  placeholder="9876543210"
+                  placeholder="10-digit contact number"
                   autoComplete="tel"
                   hint="10 digits, no country code."
                 />
@@ -118,7 +135,7 @@ export default function Register() {
                   value={form.email}
                   onChange={update('email')}
                   error={fields.email}
-                  placeholder="aarav@example.com"
+                  placeholder="you@example.com"
                   autoComplete="email"
                 />
               </div>
@@ -137,11 +154,17 @@ export default function Register() {
                 error={fields.gender}
               />
 
+              <div className="register-section-label register-section-space">
+                <span>02</span>
+                <div><strong>Keep your account safe</strong><small>Create a password only you know.</small></div>
+              </div>
+
               <div className="grid gap-5 sm:grid-cols-2">
                 <TextField
                   label="Password"
                   type="password"
                   required
+                  showPasswordToggle
                   value={form.password}
                   onChange={update('password')}
                   error={fields.password}
@@ -153,6 +176,7 @@ export default function Register() {
                   label="Confirm password"
                   type="password"
                   required
+                  showPasswordToggle
                   value={form.confirm}
                   onChange={update('confirm')}
                   error={form.confirm && form.confirm !== form.password ? 'Passwords do not match' : undefined}
@@ -172,6 +196,8 @@ export default function Register() {
                 </Link>
               </p>
             </form>
+          </div>
+          </div>
           </div>
         </div>
       </section>

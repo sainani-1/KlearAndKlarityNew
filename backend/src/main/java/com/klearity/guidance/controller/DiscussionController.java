@@ -26,15 +26,19 @@ public class DiscussionController {
     public DiscussionDtos.PageResponse<DiscussionDtos.PostResponse> posts(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "recent") String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return discussionService.listPosts(categoryId, search, page, size);
+        return discussionService.listPosts(categoryId, search, page, size, sort);
     }
 
     @GetMapping("/posts/{id}")
     public DiscussionDtos.PostDetailResponse post(@PathVariable Long id) {
         return discussionService.postDetail(id);
     }
+
+    @PostMapping("/posts/{id}/like")
+    public DiscussionDtos.PostResponse like(@PathVariable Long id) { return discussionService.toggleLike(id); }
 
     @PostMapping("/posts")
     public DiscussionDtos.PostResponse createPost(@Valid @RequestBody DiscussionDtos.PostRequest request) {

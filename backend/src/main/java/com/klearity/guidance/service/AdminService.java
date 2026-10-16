@@ -15,6 +15,7 @@ import com.klearity.guidance.repository.DiscussionPostRepository;
 import com.klearity.guidance.repository.OnboardingAnswerRepository;
 import com.klearity.guidance.repository.PasswordResetRequestRepository;
 import com.klearity.guidance.repository.UserRepository;
+import com.klearity.guidance.repository.UserFollowRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,12 +26,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
+    public static final Set<String> BADGE_KEYS = Set.of("KLEARITY_STAR", "CAREER_EXPLORER", "COMMUNITY_HELPER", "RISING_MIND");
+
     private final UserRepository userRepository;
+    private final UserFollowRepository followRepository;
     private final OnboardingAnswerRepository answerRepository;
     private final CareerItemRepository careerItemRepository;
     private final DiscussionPostRepository postRepository;
@@ -83,7 +88,17 @@ public class AdminService {
         };
 
         return userRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "createdAt")).stream()
-                .map(AdminService::toAdminResponse)
+                .map(this::toAdminResponseWithFollowers)
+                .toList();
+    }
+
+    /** All accounts ranked by the number of followers, for the admin's Followers view. */
+    @Transactional(readOnly = true)
+    public List<UserDtos.AdminUserResponse> followers(String search, String role) {
+        return registrations(search, role).stream()
+                .sorted(java.util.Comparator.comparingLong(UserDtos.AdminUserResponse::followerCount)
+                        .reversed()
+                        .thenComparing(UserDtos.AdminUserResponse::createdAt, java.util.Comparator.reverseOrder()))
                 .toList();
     }
 
@@ -111,7 +126,7 @@ public class AdminService {
             throw new BadRequestException("The last admin account cannot be disabled.");
         }
         target.setEnabled(enabled);
-        return toAdminResponse(userRepository.save(target));
+        return toAdminResponseWithFollowers(userRepository.save(target));
     }
 
     @Transactional
@@ -129,7 +144,26 @@ public class AdminService {
         }
 
         target.setRole(role);
-        return toAdminResponse(userRepository.save(target));
+        return toAdminResponseWithFollowers(userRepository.save(target));
+    }
+
+    @Transactional
+    public UserDtos.AdminUserResponse setPublicAccount(Long userId, boolean publicAccount) {
+        User target = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found."));
+        target.setPublicAccount(publicAccount);
+        return toAdminResponseWithFollowers(userRepository.save(target));
+    }
+
+    @Transactional
+    public UserDtos.AdminUserResponse setBadge(Long userId, String badgeKey) {
+        User target = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found."));
+        if (badgeKey != null && !badgeKey.isBlank() && !BADGE_KEYS.contains(badgeKey)) {
+            throw new BadRequestException("That badge is not available.");
+        }
+        target.setBadgeKey(badgeKey == null || badgeKey.isBlank() ? null : badgeKey);
+        return toAdminResponseWithFollowers(userRepository.save(target));
     }
 
     @Transactional
@@ -202,6 +236,13 @@ public class AdminService {
         return new UserDtos.AdminUserResponse(
                 u.getId(), u.getFullName(), u.getFirstName(), u.getContactNumber(),
                 u.getEmail(), u.getGender(), u.getRole(), u.isEmailVerified(),
-                u.isOnboardingCompleted(), u.isEnabled(), u.getCreatedAt());
+                u.isOnboardingCompleted(), u.isEnabled(), 0, u.isPublicAccount(), u.getCreatedAt(), u.getBadgeKey());
+    }
+
+    private UserDtos.AdminUserResponse toAdminResponseWithFollowers(User u) {
+        return new UserDtos.AdminUserResponse(
+                u.getId(), u.getFullName(), u.getFirstName(), u.getContactNumber(),
+                u.getEmail(), u.getGender(), u.getRole(), u.isEmailVerified(),
+                u.isOnboardingCompleted(), u.isEnabled(), followRepository.countByFollowingId(u.getId()), u.isPublicAccount(), u.getCreatedAt(), u.getBadgeKey());
     }
 }

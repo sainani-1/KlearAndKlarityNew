@@ -2,12 +2,33 @@
 .env
 .env.local
 .env.*.local
+frontend/android/keystore.properties
+frontend/android/keystore/
+*.jks
+*.keystore
 
 # Build output
 backend/target/
 frontend/dist/
 frontend/node_modules/
 node_modules/
+
+# Mobile native build output
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/local.properties
+frontend/android/app/src/main/assets/public/
+frontend/ios/App/App/public/
+frontend/ios/App/Pods/
+frontend/ios/App/build/
+frontend/ios/App/DerivedData/
+
+# Desktop build output
+desktop/node_modules/
+desktop/release/
+desktop/dist/
+
 
 # Logs
 *.log

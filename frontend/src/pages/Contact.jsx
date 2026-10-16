@@ -32,10 +32,11 @@ export default function Contact() {
 
   return (
     <>
-      <section className="border-b border-slate-200 bg-gradient-to-br from-brand-50 to-white py-14">
+      <section className="hero-stage relative overflow-hidden border-b border-brand-950 py-20 sm:py-28">
         <div className="container-page">
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Contact us</h1>
-          <p className="mt-3 max-w-2xl text-slate-600">
+          <p className="section-kicker text-brand-200">A real person is listening</p>
+          <h1 className="display-title mt-5 max-w-3xl font-extrabold text-white">Let’s make the next step clearer.</h1>
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-brand-100/75 sm:text-lg">
             Questions, corrections, or a category you think we are missing. Messages land directly in the
             admin inbox.
           </p>
@@ -45,7 +46,7 @@ export default function Contact() {
       <section className="container-page py-16">
         <div className="grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            <div className="card p-6 sm:p-8">
+            <div className="auth-panel p-6 sm:p-10">
               {sent ? (
                 <div className="py-6 text-center">
                   <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl" aria-hidden="true">
@@ -74,7 +75,7 @@ export default function Contact() {
                         value={form.name}
                         onChange={update('name')}
                         error={fields.name}
-                        placeholder="Aarav Sharma"
+                        placeholder="Enter your name"
                         autoComplete="name"
                       />
                       <TextField
@@ -84,7 +85,7 @@ export default function Contact() {
                         value={form.email}
                         onChange={update('email')}
                         error={fields.email}
-                        placeholder="aarav@example.com"
+                        placeholder="you@example.com"
                         autoComplete="email"
                       />
                     </div>

@@ -4,6 +4,7 @@ import api from '../lib/api'
 import { useAuth } from '../lib/auth'
 import { EmptyState } from '../components/Feedback'
 import { pluralize } from '../lib/utils'
+import { getCareerPreferences, toggleCompare, toggleSaved } from '../lib/careerPrefs'
 
 const SORTS = [
   { value: 'title', label: 'Name (A-Z)' },
@@ -32,6 +33,13 @@ export default function CareerTree() {
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
   const [sort, setSort] = useState('title')
+  const [preferences, setPreferences] = useState(getCareerPreferences())
+
+  useEffect(() => {
+    const sync = () => setPreferences(getCareerPreferences())
+    window.addEventListener('klearity:career-preferences', sync)
+    return () => window.removeEventListener('klearity:career-preferences', sync)
+  }, [])
 
   // Debounce the search box so we are not firing a request on every keystroke.
   useEffect(() => {
@@ -380,7 +388,7 @@ export default function CareerTree() {
             <ul className="mt-4 space-y-3">
               {items.map((item) => (
                 <li key={item.id}>
-                  <Link to={`/career-tree/${item.id}`} className="card-hover block p-5">
+                  <div className="card-hover p-5">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="badge bg-brand-50 text-brand-700 ring-1 ring-brand-200">
                         {item.className}
@@ -396,7 +404,17 @@ export default function CareerTree() {
                       {item.description}
                     </p>
 
-                    <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand-700">
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <Link to={`/career-tree/${item.id}`} className="btn-primary btn-sm">View pathway ↗</Link>
+                      <button type="button" onClick={() => toggleSaved(item.id)} className="btn-secondary btn-sm">
+                        {preferences.saved.includes(item.id) ? '★ Saved' : '☆ Save'}
+                      </button>
+                      <button type="button" onClick={() => toggleCompare(item.id)} className="btn-ghost btn-sm">
+                        {preferences.compare.includes(item.id) ? '✓ Comparing' : '+ Compare'}
+                      </button>
+                    </div>
+                    {/* Decorative directional cue */}
+                    <span className="sr-only">
                       View pathway
                       <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path
@@ -406,7 +424,7 @@ export default function CareerTree() {
                         />
                       </svg>
                     </span>
-                  </Link>
+                  </div>
                 </li>
               ))}
             </ul>

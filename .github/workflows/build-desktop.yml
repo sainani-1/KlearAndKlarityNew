@@ -1,0 +1,91 @@
+name: Build desktop apps (Windows / macOS / Linux)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: "Backend API base URL (e.g. https://api.example.com/api)"
+        required: true
+        default: "https://klear-and-klarity-api.zeabur.zeabur.app/api"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build web assets
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ github.event.inputs.api_url }}
+        run: npm ci && npm run build
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm install
+      - name: Build Windows installers
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder --win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: |
+            desktop/release/*.exe
+            desktop/release/*.blockmap
+
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build web assets
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ github.event.inputs.api_url }}
+        run: npm ci && npm run build
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm install
+      - name: Build macOS installers
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder --mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.zip
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build web assets
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ github.event.inputs.api_url }}
+        run: npm ci && npm run build
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm install
+      - name: Build Linux packages
+        working-directory: desktop
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder --linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: |
+            desktop/release/*.AppImage
+            desktop/release/*.deb

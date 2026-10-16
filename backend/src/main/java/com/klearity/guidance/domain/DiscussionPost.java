@@ -51,6 +51,9 @@ public class DiscussionPost {
     @Column(name = "body", nullable = false, length = 8000)
     private String body;
 
+    @Column(name = "links_json", columnDefinition = "TEXT")
+    private String linksJson;
+
     @Column(name = "pinned", nullable = false)
     @Builder.Default
     private boolean pinned = false;

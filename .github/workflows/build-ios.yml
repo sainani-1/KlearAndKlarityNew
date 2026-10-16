@@ -1,0 +1,104 @@
+name: Build iOS app (App Store)
+
+# Builds the iOS .ipa on a cloud macOS runner (no local Mac needed).
+# Manual trigger only during setup, then can be extended to run on tags.
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: "Backend API base URL (e.g. https://api.example.com/api)"
+        required: true
+        default: "https://klear-and-klarity-api.zeabur.zeabur.app/api"
+
+jobs:
+  ios:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build web assets with production API URL
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ github.event.inputs.api_url }}
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        working-directory: frontend
+        run: npx cap sync ios
+
+      - name: Install CocoaPods deps
+        working-directory: frontend/ios/App
+        run: pod install
+
+      # ---- UNSIGNED archive (works with no Apple account) ----
+      - name: Build unsigned .ipa
+        working-directory: frontend/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $RUNNER_TEMP/App.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            archive
+          mkdir -p "$GITHUB_WORKSPACE/output"
+          cd $RUNNER_TEMP/App.xcarchive/Products/Applications
+          zip -r "$GITHUB_WORKSPACE/output/KlearAndKlarity-unsigned.ipa" App.app
+
+      - name: Upload unsigned .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned-ipa
+          path: output/KlearAndKlarity-unsigned.ipa
+
+      # ---- SIGNED + notarized .ipa for the App Store ----
+      # Runs only when Apple secrets are configured in the repo.
+      - name: Build signed .ipa
+        if: ${{ secrets.IOS_DIST_CERT_P12 != '' }}
+        working-directory: frontend/ios/App
+        env:
+          CERT_P12: ${{ secrets.IOS_DIST_CERT_P12 }}
+          CERT_PASS: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+          PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+          KEYCHAIN_PASS: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          echo "$CERT_P12" | base64 --decode > $RUNNER_TEMP/cert.p12
+          echo "$PROFILE" | base64 --decode > $RUNNER_TEMP/profile.mobileprovision
+          security create-keychain -p "$KEYCHAIN_PASS" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASS" build.keychain
+          security import $RUNNER_TEMP/cert.p12 -k build.keychain -P "$CERT_PASS" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASS" build.keychain
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $RUNNER_TEMP/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+          xcodebuild -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath $RUNNER_TEMP/App.xcarchive \
+            archive
+          xcodebuild -exportArchive \
+            -archivePath $RUNNER_TEMP/App.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath $RUNNER_TEMP/export
+          cp $RUNNER_TEMP/export/*.ipa "$GITHUB_WORKSPACE/output/KlearAndKlarity-release.ipa"
+
+      - name: Upload signed .ipa artifact
+        if: ${{ secrets.IOS_DIST_CERT_P12 != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-signed-ipa
+          path: output/KlearAndKlarity-release.ipa

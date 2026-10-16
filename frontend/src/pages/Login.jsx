@@ -6,6 +6,7 @@ import { TextField } from '../components/Form'
 import { Alert } from '../components/Feedback'
 import { ButtonSpinner } from '../components/Spinner'
 import Logo from '../components/Logo'
+import AuthShowcase from '../components/AuthShowcase'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -80,16 +81,18 @@ export default function Login() {
   }
 
   return (
-    <section className="container-page py-14">
-      <div className="mx-auto max-w-md">
+    <section className="auth-stage auth-page py-10 sm:py-16">
+      <div className="container-page auth-layout">
+        <AuthShowcase mode="login" />
+        <div className="mx-auto w-full max-w-xl">
         <div className="text-center">
           <Logo size="md" showText={false} className="justify-center" />
           <h1 className="mt-5 text-3xl font-extrabold tracking-tight text-slate-900">Welcome back</h1>
           <p className="mt-2 text-slate-600">Log in to reach your dashboard and career tree.</p>
         </div>
 
-        <div className="card mt-8 p-6 sm:p-8">
-          <form onSubmit={onSubmit} className="space-y-5" noValidate>
+          <div className="auth-panel mt-8 p-6 sm:p-12">
+          <form onSubmit={onSubmit} className="space-y-7" noValidate>
             {error && (
               <Alert tone="error">
                 {error}
@@ -122,6 +125,7 @@ export default function Login() {
               label="Password"
               type="password"
               required
+              showPasswordToggle
               value={form.password}
               onChange={update('password')}
               placeholder="Your password"
@@ -145,6 +149,7 @@ export default function Login() {
               </Link>
             </p>
           </form>
+        </div>
         </div>
       </div>
     </section>

@@ -6,6 +6,7 @@ import { Alert } from '../components/Feedback'
 import { TextField } from '../components/Form'
 import { ButtonSpinner } from '../components/Spinner'
 import { GENDER_OPTIONS } from '../lib/utils'
+import StudentBadge from '../components/StudentBadge'
 
 export default function Profile() {
   const { user, setUser } = useAuth()
@@ -250,7 +251,7 @@ export default function Profile() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-700 text-lg font-bold text-white">
               {user.firstName?.[0]?.toUpperCase()}
             </div>
-            <p className="mt-3 text-base font-bold text-slate-900">{user.fullName}</p>
+            <p className="mt-3 flex flex-wrap items-center gap-2 text-base font-bold text-slate-900">{user.fullName}<StudentBadge badgeKey={user.badgeKey} /></p>
             <p className="text-sm text-slate-500">{user.email}</p>
 
             <dl className="mt-4 space-y-2.5 border-t border-slate-100 pt-4 text-sm">

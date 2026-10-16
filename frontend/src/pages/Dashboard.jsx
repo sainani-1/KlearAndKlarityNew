@@ -8,6 +8,24 @@ import { categoryColorClass, genderLabel, pluralize, timeAgo } from '../lib/util
 
 const OTHER = '__OTHER__'
 
+const normalizeInterest = (value) => String(value ?? '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim()
+
+const interestMatchesCareer = (item, interest) => {
+  const wanted = normalizeInterest(interest)
+  if (!wanted) return false
+
+  const tags = (item.interestTags ?? []).map(normalizeInterest)
+  if (tags.some((tag) => tag === wanted || tag.includes(wanted) || wanted.includes(tag))) return true
+
+  const haystack = normalizeInterest(
+    `${item.title ?? ''} ${item.description ?? ''} ${item.category ?? ''} ${item.stream ?? ''}`,
+  )
+  return wanted.split(' ').filter((word) => word.length > 2).some((word) => haystack.includes(word))
+}
+
 /** Pulls the student's saved class / interests out of their onboarding answers. */
 function useMyAnswers() {
   const [answers, setAnswers] = useState(null)
@@ -36,6 +54,7 @@ export default function Dashboard() {
 
   const [classes, setClasses] = useState([])
   const [featured, setFeatured] = useState([])
+  const [allItems, setAllItems] = useState([])
   const [posts, setPosts] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -52,6 +71,7 @@ export default function Dashboard() {
       .then(([classRes, itemRes, postRes, catRes]) => {
         if (cancelled) return
         setClasses(classRes.data)
+        setAllItems(itemRes.data)
         setStats({ totalItems: itemRes.data.length, categories: catRes.data.length })
 
         const first = postRes.data.content?.[0] ?? {}
@@ -92,7 +112,18 @@ export default function Dashboard() {
     : '-'
 
   const interests = interestAnswer?.options?.filter((o) => o !== OTHER) ?? []
+  if (interestAnswer?.text?.trim()) interests.push(interestAnswer.text.trim())
   const recommendedClass = classes.find((c) => c.name === chosenClass)
+  const recommendations = allItems
+    .map((item) => {
+      const classMatch = chosenClass !== '-' && item.className?.toLowerCase() === chosenClass.toLowerCase() ? 4 : 0
+      const interestMatch = interests.reduce((score, interest) => score + (interestMatchesCareer(item, interest) ? 3 : 0), 0)
+      return { item, score: classMatch + interestMatch }
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ item }) => item)
 
   return (
     <div className="container-page py-10">
@@ -203,6 +234,22 @@ export default function Dashboard() {
                 )}
               </div>
             )}
+          </section>
+
+          <section>
+            <div className="flex items-center justify-between">
+              <div><p className="section-kicker">Based on your answers</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">Recommended for you</h2></div>
+              <Link to="/career-tree" className="link text-sm">See all</Link>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {(recommendations.length ? recommendations : featured.slice(0, 3)).map((item) => (
+                <Link key={item.id} to={`/career-tree/${item.id}`} className="card-hover block p-4">
+                  <span className="badge bg-brand-50 text-brand-700">{item.className}</span>
+                  <p className="mt-2 text-sm font-bold text-slate-900">{item.title}</p>
+                  <p className="mt-1 line-clamp-2 text-xs text-slate-500">Picked from your class and interests.</p>
+                </Link>
+              ))}
+            </div>
           </section>
 
           {/* recent discussions */}

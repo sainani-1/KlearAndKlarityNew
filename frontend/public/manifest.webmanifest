@@ -1,0 +1,18 @@
+{
+  "name": "Klear And Klarity",
+  "short_name": "Klear Klarity",
+  "description": "Career guidance, a filterable career tree and a student discussion, built for students choosing their path after Class 10.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1d4ed8",
+  "theme_color": "#1d4ed8",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/pwa-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/pwa-512x512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/maskable-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

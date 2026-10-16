@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * The "Account created" style popup. Closes on Escape or a backdrop click and locks
@@ -23,10 +24,10 @@ export default function Modal({ open, onClose, title, children, footer, size = '
 
   const width = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' }[size] ?? 'max-w-lg'
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+  return createPortal((
+    <div className="fixed inset-0 z-[100] flex items-end justify-center p-4 sm:items-center">
       <div
-        className="absolute inset-0 bg-slate-900/55 backdrop-blur-sm"
+        className="absolute inset-0 z-0 bg-slate-950/65 backdrop-blur-[3px]"
         onClick={dismissible ? onClose : undefined}
         aria-hidden="true"
       />
@@ -34,11 +35,11 @@ export default function Modal({ open, onClose, title, children, footer, size = '
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`relative w-full ${width} animate-[popIn_.18s_ease-out] overflow-hidden rounded-2xl
-                    bg-white shadow-2xl`}
+        className={`relative z-10 flex max-h-[calc(100vh-2rem)] w-full ${width} animate-[popIn_.18s_ease-out] flex-col overflow-hidden rounded-2xl
+                    border border-white/70 bg-white shadow-[0_30px_90px_rgba(15,23,42,.35)]`}
       >
         {title && (
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-4">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4">
             <h2 className="text-lg font-bold text-slate-900">{title}</h2>
             {dismissible && (
               <button
@@ -54,9 +55,9 @@ export default function Modal({ open, onClose, title, children, footer, size = '
             )}
           </div>
         )}
-        <div className="max-h-[70vh] overflow-y-auto px-6 py-5">{children}</div>
+        <div className="min-h-0 overflow-y-auto bg-white px-6 py-5">{children}</div>
         {footer && <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">{footer}</div>}
       </div>
     </div>
-  )
+  ), document.body)
 }

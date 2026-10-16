@@ -22,7 +22,9 @@ public record UserDtos() {
             boolean emailVerified,
             boolean onboardingCompleted,
             boolean mustChangePassword,
-            Instant createdAt
+            boolean publicAccount,
+            Instant createdAt,
+            String badgeKey
     ) {
     }
 
@@ -38,7 +40,10 @@ public record UserDtos() {
             boolean emailVerified,
             boolean onboardingCompleted,
             boolean enabled,
-            Instant createdAt
+            long followerCount,
+            boolean publicAccount,
+            Instant createdAt,
+            String badgeKey
     ) {
     }
 
@@ -47,5 +52,8 @@ public record UserDtos() {
             String contactNumber,
             Gender gender
     ) {
+    }
+
+    public record BadgeRequest(String badgeKey) {
     }
 }

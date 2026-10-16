@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import api from '../lib/api'
 import { PageLoader } from '../components/Spinner'
 import { Alert } from '../components/Feedback'
+import { getCareerPreferences, toggleCompare, toggleSaved } from '../lib/careerPrefs'
 
 /** The dataset fields rendered as titled sections on the detail page. */
 const SECTIONS = [
@@ -62,6 +63,13 @@ export default function CareerDetail() {
   const { id } = useParams()
   const [item, setItem] = useState(null)
   const [error, setError] = useState('')
+  const [preferences, setPreferences] = useState(getCareerPreferences())
+
+  useEffect(() => {
+    const sync = () => setPreferences(getCareerPreferences())
+    window.addEventListener('klearity:career-preferences', sync)
+    return () => window.removeEventListener('klearity:career-preferences', sync)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -96,6 +104,7 @@ export default function CareerDetail() {
   if (!item) return <PageLoader label="Loading pathway..." />
 
   const detail = item.detail ?? {}
+  const roadmap = splitInline(detail.path_after_10th || detail.career_growth || detail.higher_studies)
   const facts = [
     { label: 'Class', value: item.className },
     { label: 'Category', value: item.category },
@@ -105,6 +114,15 @@ export default function CareerDetail() {
     { label: 'Approximate cost', value: detail.approx_cost_range_inr },
     { label: 'Last reviewed', value: detail.last_reviewed },
   ].filter((fact) => fact.value)
+  const defaultOfficialResources = [
+    ['National Scholarship Portal', 'https://scholarships.gov.in/'],
+    ['National Testing Agency', 'https://exams.nta.ac.in/'],
+    ['AICTE official portal', 'https://www.aicte-india.org/'],
+    ['UGC official portal', 'https://www.ugc.gov.in/'],
+  ]
+  const officialResources = Array.isArray(detail.official_links) && detail.official_links.length
+    ? detail.official_links.map((link) => [link.label, link.url])
+    : defaultOfficialResources
 
   return (
     <div className="container-page py-8">
@@ -141,7 +159,7 @@ export default function CareerDetail() {
           </header>
 
           {/* interest tags */}
-          {item.interestTags?.length > 0 && (
+            {item.interestTags?.length > 0 && (
             <div className="mt-6">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
                 Skills and interests
@@ -154,6 +172,16 @@ export default function CareerDetail() {
                 ))}
               </div>
             </div>
+            )}
+
+          {roadmap.length > 0 && (
+            <section className="roadmap-panel mt-8">
+              <p className="section-kicker">Your possible route</p>
+              <h2 className="mt-2 text-2xl font-black tracking-tight text-slate-900">A clearer next chapter</h2>
+              <ol className="roadmap mt-6">
+                {roadmap.map((step, index) => <li key={`${step}-${index}`}><span>{String(index + 1).padStart(2, '0')}</span><div><strong>{step}</strong><small>{index === 0 ? 'Start here' : index === roadmap.length - 1 ? 'Long-term direction' : 'Build toward this'}</small></div></li>)}
+              </ol>
+            </section>
           )}
 
           <div className="card mt-8 px-6 py-2">
@@ -178,7 +206,7 @@ export default function CareerDetail() {
 
         {/* facts sidebar */}
         <aside className="space-y-6">
-          <div className="card sticky top-24 p-5">
+          <div className="card p-5">
             <h2 className="text-xs font-bold uppercase tracking-wide text-slate-500">At a glance</h2>
             <dl className="mt-3 space-y-3">
               {facts.map((fact) => (
@@ -189,7 +217,13 @@ export default function CareerDetail() {
               ))}
             </dl>
 
-            <Link to="/discussion" className="btn-primary mt-5 w-full">
+            <button type="button" onClick={() => toggleSaved(item.id)} className="btn-secondary mt-5 w-full">
+              {preferences.saved.includes(item.id) ? '★ Saved to my shortlist' : '☆ Save to shortlist'}
+            </button>
+            <button type="button" onClick={() => toggleCompare(item.id)} className="btn-ghost mt-2 w-full">
+              {preferences.compare.includes(item.id) ? '✓ Added to comparison' : '+ Add to comparison'}
+            </button>
+            <Link to="/discussion" className="btn-primary mt-2 w-full">
               Ask a doubt
             </Link>
             <Link to="/career-tree" className="btn-secondary mt-2 w-full">
@@ -203,6 +237,14 @@ export default function CareerDetail() {
               <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.classDescription}</p>
             </div>
           )}
+
+          <div className="card p-5">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-slate-500">Official places to verify</h2>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">Use official sources for current eligibility, exams, scholarships, and admissions.</p>
+            <ul className="mt-3 space-y-2">
+              {officialResources.map(([label, href]) => <li key={href}><a href={href} target="_blank" rel="noreferrer" className="link text-sm">{label} ↗</a></li>)}
+            </ul>
+          </div>
         </aside>
       </div>
     </div>

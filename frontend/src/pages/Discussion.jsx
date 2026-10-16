@@ -6,22 +6,34 @@ import { Alert, EmptyState } from '../components/Feedback'
 import { TextField, Checkbox } from '../components/Form'
 import Modal from '../components/Modal'
 import { ButtonSpinner } from '../components/Spinner'
+import AdminBadge from '../components/AdminBadge'
+import StudentBadge from '../components/StudentBadge'
 import { categoryColorClass, pluralize, timeAgo } from '../lib/utils'
 
 const PAGE_SIZE = 12
 
-function PostCard({ post }) {
+function PostCard({ post, onLike }) {
   return (
     <li>
       <Link to={`/discussion/${post.id}`} className="card-hover block p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          {post.pinned && (
-            <span className="badge bg-amber-50 text-amber-700 ring-1 ring-amber-200">📌 Pinned</span>
-          )}
-          <span className={`badge ring-1 ${categoryColorClass(post.categoryColor)}`}>{post.categoryName}</span>
-          <span className="text-xs text-slate-500">
-            {post.displayName} · {timeAgo(post.createdAt)}
-          </span>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {post.pinned && (
+              <span className="badge bg-amber-50 text-amber-700 ring-1 ring-amber-200">📌 Pinned</span>
+            )}
+            <span className={`badge ring-1 ${categoryColorClass(post.categoryColor)}`}>{post.categoryName}</span>
+            <span className="text-xs text-slate-500">
+              {post.adminAuthor ? <AdminBadge /> : post.anonymous || !post.authorId ? post.displayName : <Link to={`/users/${post.authorId}`} onClick={(e) => e.stopPropagation()} className="link">{post.displayName}</Link>} {!post.anonymous && <StudentBadge badgeKey={post.badgeKey} compact />} · {timeAgo(post.createdAt)}
+            </span>
+          </div>
+          <button
+            type="button"
+            aria-label={post.liked ? 'Unlike post' : 'Like post'}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onLike(post.id) }}
+            className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 transition ${post.liked ? 'bg-brand-50 text-brand-700 ring-brand-200' : 'bg-white text-slate-600 ring-slate-200 hover:bg-brand-50 hover:text-brand-700'}`}
+          >
+            {post.liked ? '♥ Liked' : '♡ Like'} · {post.likeCount ?? 0}
+          </button>
         </div>
 
         <h2 className="mt-2.5 text-base font-bold text-slate-900">{post.title}</h2>
@@ -47,9 +59,12 @@ export default function Discussion() {
   const [categoryId, setCategoryId] = useState(null)
   const [search, setSearch] = useState('')
   const [debounced, setDebounced] = useState('')
+  const [sort, setSort] = useState('recent')
 
   const [composerOpen, setComposerOpen] = useState(false)
-  const [form, setForm] = useState({ categoryId: '', title: '', body: '', anonymous: false })
+  const [form, setForm] = useState({ categoryId: '', title: '', body: '', anonymous: false, links: [] })
+  const [linkDraft, setLinkDraft] = useState({ title: '', url: '' })
+  const [addingLink, setAddingLink] = useState(false)
   const [formError, setFormError] = useState('')
   const [toast, setToast] = useState('')
 
@@ -68,7 +83,7 @@ export default function Discussion() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const params = { page: pageIndex, size: PAGE_SIZE }
+      const params = { page: pageIndex, size: PAGE_SIZE, sort }
       if (categoryId) params.categoryId = categoryId
       if (debounced) params.search = debounced
       const { data } = await api.get('/discussions/posts', { params })
@@ -78,7 +93,12 @@ export default function Discussion() {
     } finally {
       setLoading(false)
     }
-  }, [pageIndex, categoryId, debounced])
+  }, [pageIndex, categoryId, debounced, sort])
+
+  const like = async (id) => {
+    const { data } = await api.post(`/discussions/posts/${id}/like`)
+    setPage((prev) => prev && { ...prev, content: prev.content.map((p) => p.id === id ? { ...p, ...data } : p) })
+  }
 
   useEffect(() => {
     load()
@@ -101,6 +121,7 @@ export default function Discussion() {
       title: '',
       body: '',
       anonymous: false,
+      links: [],
     })
     setFormError('')
     setError('')
@@ -122,6 +143,7 @@ export default function Discussion() {
         title: form.title,
         body: form.body,
         anonymous: form.anonymous,
+        links: form.links,
       }),
     )
 
@@ -215,6 +237,13 @@ export default function Discussion() {
                 className="input mt-2.5"
               />
             </div>
+            <div className="mt-4">
+              <label htmlFor="discussion-sort" className="label">Sort posts</label>
+              <select id="discussion-sort" value={sort} onChange={(e) => { setSort(e.target.value); setPageIndex(0) }} className="input">
+                <option value="recent">Most recent</option>
+                <option value="likes">Most liked</option>
+              </select>
+            </div>
 
             {(activeCategoryName || debounced) && (
               <button
@@ -269,7 +298,7 @@ export default function Discussion() {
             <>
               <ul className="space-y-3">
                 {posts.map((post) => (
-                  <PostCard key={post.id} post={post} />
+                  <PostCard key={post.id} post={post} onLike={like} />
                 ))}
               </ul>
 
@@ -374,6 +403,12 @@ export default function Discussion() {
                 hint="At least 10 characters. Share what you have already tried if it helps."
                 placeholder="I am in Class 10 and confused between..."
               />
+
+              <div className="rounded-xl border border-slate-200 p-4">
+                <div className="flex items-center justify-between"><h2 className="text-sm font-bold text-slate-900">Links <span className="font-normal text-slate-500">({form.links?.length ?? 0}/10)</span></h2><button type="button" className="btn-secondary btn-sm" disabled={(form.links?.length ?? 0) >= 10} onClick={() => setAddingLink(true)}>+ Add link</button></div>
+                {(form.links || []).map((link, index) => <div key={`${link.url}-${index}`} className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"><span>{link.title}</span><button type="button" className="text-rose-600" onClick={() => setForm({ ...form, links: form.links.filter((_, i) => i !== index) })}>Remove</button></div>)}
+                {addingLink && <div className="mt-3 grid gap-2 sm:grid-cols-2"><input className="input" placeholder="Link title" value={linkDraft.title} onChange={e => setLinkDraft({ ...linkDraft, title: e.target.value })}/><input className="input" placeholder="https://example.com" value={linkDraft.url} onChange={e => setLinkDraft({ ...linkDraft, url: e.target.value })}/><button type="button" className="btn-primary btn-sm" onClick={() => { if (linkDraft.title.trim() && linkDraft.url.trim()) { setForm({ ...form, links: [...form.links, { title: linkDraft.title.trim(), url: linkDraft.url.trim() }] }); setLinkDraft({ title: '', url: '' }); setAddingLink(false) } }}>Save link</button></div>}
+              </div>
 
               <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200">
                 <Checkbox

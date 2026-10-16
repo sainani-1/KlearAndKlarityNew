@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 
 /** Text input with label, hint and inline validation message. */
 export function TextField({
@@ -10,29 +10,57 @@ export function TextField({
   required,
   className = '',
   textareaRows = 4,
+  showPasswordToggle = false,
   ...props
 }) {
   const id = useId()
+  const [revealed, setRevealed] = useState(false)
   const describedBy = [hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined
   const Element = as
 
   return (
-    <div className={className}>
+    <div className={`field-block ${className}`}>
       {label && (
         <label htmlFor={id} className="label">
           {label}
           {required && <span className="ml-0.5 text-rose-500">*</span>}
         </label>
       )}
-      <Element
-        id={id}
-        type={as === 'input' ? type : undefined}
-        rows={as === 'textarea' ? textareaRows : undefined}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={describedBy}
-        className={`input ${error ? 'input-error' : ''} ${as === 'textarea' ? 'resize-y' : ''}`}
-        {...props}
-      />
+      <div
+        className={`field-control ${showPasswordToggle && type === 'password' ? 'relative' : ''}`}
+        onMouseMove={(event) => {
+          const bounds = event.currentTarget.getBoundingClientRect()
+          const percent = ((event.clientX - bounds.left) / bounds.width) * 100
+          event.currentTarget.style.setProperty('--cursor-x', `${percent}%`)
+        }}
+      >
+        <Element
+          id={id}
+          type={as === 'input' ? (revealed ? 'text' : type) : undefined}
+          rows={as === 'textarea' ? textareaRows : undefined}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={describedBy}
+          className={`input ${showPasswordToggle && type === 'password' ? 'pr-16' : ''} ${error ? 'input-error' : ''} ${as === 'textarea' ? 'resize-y' : ''}`}
+          {...props}
+        />
+        {showPasswordToggle && type === 'password' && (
+          <button
+            type="button"
+            onClick={() => setRevealed((value) => !value)}
+            className="password-toggle"
+            aria-label={revealed ? 'Hide password' : 'Show password'}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+              {revealed ? (
+                <><path strokeLinecap="round" strokeLinejoin="round" d="M3.5 3.5 20.5 20.5" /><path strokeLinecap="round" strokeLinejoin="round" d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path strokeLinecap="round" strokeLinejoin="round" d="M9.9 4.2A10.7 10.7 0 0 1 12 4c5.2 0 8.5 5 9.5 8a16.4 16.4 0 0 1-3 4.8M6.2 6.2C3.8 7.8 2.8 10.2 2.5 12c1 3 4.3 8 9.5 8 1 0 1.9-.2 2.8-.5" /></>
+              ) : (
+                <><path strokeLinecap="round" strokeLinejoin="round" d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" /><circle cx="12" cy="12" r="2.5" /></>
+              )}
+            </svg>
+            <span>{revealed ? 'Hide' : 'Show'}</span>
+          </button>
+        )}
+      </div>
       {hint && !error && (
         <p id={`${id}-hint`} className="mt-1.5 text-xs text-slate-500">
           {hint}

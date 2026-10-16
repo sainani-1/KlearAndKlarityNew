@@ -82,6 +82,7 @@ export default function ResetPassword() {
                 label="New password"
                 type="password"
                 required
+                showPasswordToggle
                 value={form.password}
                 onChange={update('password')}
                 error={fields.newPassword}
@@ -94,6 +95,7 @@ export default function ResetPassword() {
                 label="Confirm new password"
                 type="password"
                 required
+                showPasswordToggle
                 value={form.confirm}
                 onChange={update('confirm')}
                 error={form.confirm && form.confirm !== form.password ? 'Passwords do not match' : undefined}

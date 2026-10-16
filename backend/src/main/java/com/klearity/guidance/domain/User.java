@@ -64,6 +64,14 @@ public class User {
     @Builder.Default
     private boolean enabled = true;
 
+    @Column(name = "public_account", nullable = false)
+    @Builder.Default
+    private boolean publicAccount = true;
+
+    /** Optional recognition badge assigned by an administrator. */
+    @Column(name = "badge_key", length = 40)
+    private String badgeKey;
+
     @Column(name = "created_at", nullable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();

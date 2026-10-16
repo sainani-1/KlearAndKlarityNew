@@ -2,6 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
+import ScrollReveal from './components/ScrollReveal'
+import CareerGuideBot from './components/CareerGuideBot'
+import { useAuth } from './lib/auth'
 
 import Home from './pages/Home'
 import About from './pages/About'
@@ -15,14 +18,18 @@ import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import CareerTree from './pages/CareerTree'
 import CareerDetail from './pages/CareerDetail'
+import Compare from './pages/Compare'
 import Discussion from './pages/Discussion'
 import DiscussionPost from './pages/DiscussionPost'
 import Profile from './pages/Profile'
+import PublicProfile from './pages/PublicProfile'
 import NotFound from './pages/NotFound'
 
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
+import AdminBadges from './pages/admin/AdminBadges'
+import AdminFollowers from './pages/admin/AdminFollowers'
 import AdminOnboarding from './pages/admin/AdminOnboarding'
 import AdminCareers from './pages/admin/AdminCareers'
 import AdminDiscussion from './pages/admin/AdminDiscussion'
@@ -30,10 +37,13 @@ import AdminMessages from './pages/admin/AdminMessages'
 import AdminSettings from './pages/admin/AdminSettings'
 
 export default function App() {
+  const { isLoggedIn } = useAuth()
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="app-shell flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
+        <ScrollReveal />
         <Routes>
           {/* public */}
           <Route path="/" element={<Home />} />
@@ -80,6 +90,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/compare" element={<ProtectedRoute><Compare /></ProtectedRoute>} />
           <Route
             path="/discussion"
             element={
@@ -104,6 +115,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/users/:id" element={<ProtectedRoute><PublicProfile /></ProtectedRoute>} />
 
           {/* admin only */}
           <Route
@@ -116,6 +128,8 @@ export default function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="registrations" element={<AdminRegistrations />} />
+            <Route path="badges" element={<AdminBadges />} />
+            <Route path="followers" element={<AdminFollowers />} />
             <Route path="onboarding" element={<AdminOnboarding />} />
             <Route path="careers" element={<AdminCareers />} />
             <Route path="discussion" element={<AdminDiscussion />} />
@@ -127,6 +141,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </main>
+      {isLoggedIn && <CareerGuideBot />}
       <Footer />
     </div>
   )

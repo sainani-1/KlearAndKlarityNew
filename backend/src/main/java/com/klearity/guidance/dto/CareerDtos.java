@@ -49,6 +49,7 @@ public record CareerDtos() {
             String description,
             String duration,
             String stream,
+            List<String> interestTags,
             int sortOrder
     ) {
     }
