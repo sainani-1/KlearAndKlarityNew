@@ -33,11 +33,11 @@ const STEPS = [
 ]
 
 const CLASSES = [
-  { name: '10th', count: 'Short skill courses you can start right away', tone: 'bg-brand-50 text-brand-800 ring-brand-200' },
+  { name: '10th', count: 'Short skill courses you can start right away', tone: 'bg-violet-50 text-violet-800 ring-violet-200' },
   { name: 'Inter/Diploma', count: 'ITI trades, polytechnic and diploma pathways', tone: 'bg-indigo-50 text-indigo-800 ring-indigo-200' },
   { name: 'UG', count: "Bachelor's degree programmes after Class 12", tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
   { name: 'PG', count: 'Postgraduate and research qualifications', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  { name: 'Others', count: 'Open school, distance learning, exams and flexible routes', tone: 'bg-rose-50 text-rose-800 ring-rose-200' },
+  { name: 'Others', count: 'Open school, distance learning, exams and flexible routes', tone: 'bg-sky-50 text-sky-800 ring-sky-200' },
 ]
 
 export default function Home() {
@@ -67,7 +67,7 @@ export default function Home() {
           <div className="grid items-end gap-14 lg:grid-cols-[0.9fr_1.1fr]">
             <div>
               <span className="badge bg-white/10 text-brand-100 ring-1 ring-white/20 backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#ff9b71] shadow-[0_0_12px_#ff9b71]" />
+                <span className="h-1.5 w-1.5 rounded-full bg-[#22d3ee] shadow-[0_0_12px_#22d3ee]" />
                 A clearer next chapter
               </span>
 
@@ -98,7 +98,7 @@ export default function Home() {
                   { value: '0', label: 'Profile leaks' },
                 ].map((stat) => (
                   <div key={stat.label}>
-                    <dt className="text-2xl font-bold text-[#ffb18f]">{stat.value}</dt>
+                    <dt className="text-2xl font-bold text-[#a5f3fc]">{stat.value}</dt>
                     <dd className="mt-0.5 text-xs text-brand-100/70">{stat.label}</dd>
                   </div>
                 ))}
